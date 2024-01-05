@@ -92,7 +92,9 @@
 				1,
 				2,
 				3,
-				4
+				4,
+				5,
+				6
 			]
 		}
 	],
@@ -122,6 +124,16 @@
 		{
 			"backtrace" : 1,
 			"path" : "BinaryNode.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"path" : "filesize.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"path" : "BinarySearchTree.h",
 			"sourceGroupIndex" : 1
 		}
 	],

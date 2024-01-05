@@ -13,22 +13,32 @@
 #include <vector>
 #include <algorithm>
 #include "Dictionary.h"
+#include <thread>
+#include "filesize.h"
 
 namespace custom {
+
+    void freememory(binarytree<char,char>* object) {
+        delete object;
+    }
 
     class message {
     private:
         std::string* data;
+        uintmax_t size;
     public:
         message() {
             data = nullptr;
+            size = 0;
         }
 
         message(const custom::message & copy) {
             if (copy.data) {
                 this->data = new std::string(*copy.data);
+                this->size = copy.size;
             } else {
                 this->data = nullptr;
+                this->size = 0;
             }
         }
 
@@ -52,6 +62,8 @@ namespace custom {
                     readfile();
                     return;
                 }
+                std::filesystem::path {path};
+                this->size =  std::filesystem::file_size(path);
                 data = new std::string();
                 while (!file.eof()) {
                     file >> *data;
@@ -64,7 +76,9 @@ namespace custom {
         }
 
         void writetoconsole() {
-            std::cout << "Your message is: \nmessage start:[";
+            std::cout << "Your message is (";
+            show_filesize(this->size);
+            std::cout << "):\nmessage start:[";
             for(auto letter : *data) {
                 std::cout << letter;
             }
@@ -84,11 +98,13 @@ namespace custom {
 
         void compress() {
             binarytree<char,char>* dictionary = new binarytree<char,char>;
-            for (int i = 0; i < data->size();++i) {
+            for (int i = 0; i < data->size(); ++i) {
                 dictionary->insert(data->operator[](i),data->operator[](i));
             }
             std::vector<custom::ShannonNode>* nodes = dictionary->to_shannonarray();
-            for (int i = 0; i < nodes->size();++i) {
+            std::thread memcleaner(freememory,dictionary);
+            memcleaner.detach();
+            for (int i = 0; i < nodes->size(); ++i) {
                 std::cout << nodes->operator[](i).letter << ": " <<  nodes->operator[](i).frequency << std::endl;
             }
         }

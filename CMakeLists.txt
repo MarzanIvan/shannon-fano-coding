@@ -8,4 +8,6 @@ add_executable(project main.cpp
         ShannonNode.h
         Dictionary.h
         BinaryNode.h
+        filesize.h
+        BinarySearchTree.h
 )
