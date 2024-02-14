@@ -94,7 +94,8 @@
 				3,
 				4,
 				5,
-				6
+				6,
+				7
 			]
 		}
 	],
@@ -134,6 +135,11 @@
 		{
 			"backtrace" : 1,
 			"path" : "BinarySearchTree.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"path" : "searchengine.h",
 			"sourceGroupIndex" : 1
 		}
 	],

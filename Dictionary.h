@@ -12,9 +12,13 @@
 #include <vector>
 #include "ShannonNode.h"
 
+#define UTF8defaultdectionarysize 255
+
 template <class ValueType, class KeyType=ValueType>
 struct binarytree {
     binarynode<ValueType, KeyType> *root;
+    std::vector<custom::ShannonNode*>* pointers;
+
     unsigned int size;
 
     binarytree(ValueType *Array, int SizeOfArray);
@@ -63,6 +67,7 @@ void binarytree<ValueType, KeyType>::ConvertToShannonArray(binarynode<ValueType,
 
 template <class ValueType, class KeyType>
 binarytree<ValueType, KeyType>::binarytree() {
+    this->pointers = new std::vector<custom::ShannonNode*>();
     root = nullptr;
     size = 0;
 }
@@ -70,8 +75,13 @@ binarytree<ValueType, KeyType>::binarytree() {
 template <class ValueType, class KeyType>
 binarytree<ValueType, KeyType>::binarytree(ValueType *Array, int SizeOfArray) {
     size = 0;
-    for (int i = 0; i < SizeOfArray; i++)
+    this->pointers = new std::vector<custom::ShannonNode*>();
+    this->pointers->reverse(SizeOfArray);
+    for (int i = 0; i < SizeOfArray; i++) {
+        pointers->push_back(&Array[i]);
         insert(Array[i], Array[i]);
+    }
+
 }
 
 template<class ValueType,class KeyType>

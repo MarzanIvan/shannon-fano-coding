@@ -10,4 +10,5 @@ add_executable(project main.cpp
         BinaryNode.h
         filesize.h
         BinarySearchTree.h
+        searchengine.h
 )

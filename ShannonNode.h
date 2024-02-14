@@ -21,6 +21,10 @@ namespace custom {
             frequency = 0;
         }
 
+        void IncrementFrequency() {
+            ++frequency;
+        }
+
         ShannonNode(char letter) {
             this->letter = letter;
             code = "";

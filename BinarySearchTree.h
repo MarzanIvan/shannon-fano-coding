@@ -31,9 +31,16 @@ struct BinarySearchTree {
 	}
 
 	void heapify(int index, size_t size);
-	
+
+    void add(Ttype node);
+
 	int* sort();
 };
+
+template<class Ttype>
+void BinarySearchTree<Ttype>::add(Ttype node) {
+
+}
 
 template <class Ttype>
 inline void BinarySearchTree<Ttype>::heapify(int index, size_t size) {

@@ -15,6 +15,9 @@
 #include "Dictionary.h"
 #include <thread>
 #include "filesize.h"
+#include <utility>
+
+#include <memory>
 
 namespace custom {
 
@@ -24,11 +27,23 @@ namespace custom {
 
     class message {
     private:
+        char* bytes;
+
         std::string* data;
         uintmax_t size;
     public:
         message() {
             data = nullptr;
+            bytes = new char[255];
+            char* p{bytes};
+            for(size_t i = 0; i < 255; i++) {
+                *(p++) = i;
+            }
+            p = bytes;
+            for (size_t i = 0; i < 255; i++) {
+                if (*p != 0) std::cout << "wrong";
+                p++;
+            }
             size = 0;
         }
 
@@ -65,8 +80,12 @@ namespace custom {
                 std::filesystem::path {path};
                 this->size =  std::filesystem::file_size(path);
                 data = new std::string();
+
                 while (!file.eof()) {
-                    file >> *data;
+                    char nextletter {0};
+                    file >> nextletter;
+
+
                 }
                 file.close();
             } catch(...) {
@@ -102,11 +121,29 @@ namespace custom {
                 dictionary->insert(data->operator[](i),data->operator[](i));
             }
             std::vector<custom::ShannonNode>* nodes = dictionary->to_shannonarray();
+            std::sort(nodes->begin(),nodes->end(), [](const custom::ShannonNode& a, const custom::ShannonNode& b){return a.frequency > b.frequency;});
             std::thread memcleaner(freememory,dictionary);
             memcleaner.detach();
             for (int i = 0; i < nodes->size(); ++i) {
                 std::cout << nodes->operator[](i).letter << ": " <<  nodes->operator[](i).frequency << std::endl;
             }
+        }
+
+        std::vector<custom::ShannonNode> merge(std::vector<custom::ShannonNode> a, std::vector<custom::ShannonNode> b) {
+            std::vector<custom::ShannonNode> result;
+            result.reserve(a.size() + b.size());
+            int i = 0, j = 0;
+            while (a.size() > i && b.size() > j)
+                if (a.operator[](i).frequency <= b.operator[](j).frequency) {
+                    result.push_back(a[i++]);
+                } else  {
+                    result.push_back(b[j++]);
+                }
+            while (a.size() > i)
+                result.push_back(a[i++]);
+            while (b.size() > j)
+                result.push_back(b[j++]);
+            return result;
         }
 
         void ShannonCodeGenerating(int start,int end,int arr[20], char code[20][20],int level) {
