@@ -12,7 +12,7 @@ namespace custom {
     struct ShannonNode {
 
         char letter;
-        int frequency;
+        unsigned int frequency;
         std::string code;
 
         ShannonNode() {
@@ -31,7 +31,7 @@ namespace custom {
             frequency = 0;
         }
 
-        ShannonNode(char letter, int frequency) {
+        ShannonNode(char letter, unsigned int frequency) {
             this->letter = letter;
             code = "";
             this->frequency = frequency;

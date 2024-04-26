@@ -17,7 +17,7 @@ void show_filesize(std::uintmax_t size) {
     if (size >= GB && size < TB) std::cout <<  size / GB  << " GB";
     if (size >= TB && size < PB) std::cout <<  size / TB  << " TB";
     if (size >= PB) std::cout <<  size / PB  << " PB";
-    std::cout <<  size  << "Bytes";
+    std::cout <<  size  << " Bytes";
 }
 
 #endif //PROJECT_FILESIZE_H

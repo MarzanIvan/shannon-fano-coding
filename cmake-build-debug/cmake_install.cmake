@@ -1,4 +1,4 @@
-# Install script for directory: /Users/ioann/Yandex.Disk.localized/@university/Current Semester/Information Techonology/Laboratory Works/ЛР 1 Марзан/project
+# Install script for directory: /Users/ioann/Yandex.Disk.localized/@university/Third semester/Information Techonology/Laboratory Works/ЛР 1 Марзан DONE/project
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -45,5 +45,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/Users/ioann/Yandex.Disk.localized/@university/Current Semester/Information Techonology/Laboratory Works/ЛР 1 Марзан/project/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/Users/ioann/Yandex.Disk.localized/@university/Third semester/Information Techonology/Laboratory Works/ЛР 1 Марзан DONE/project/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

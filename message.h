@@ -10,57 +10,30 @@
 #include <fstream>
 #include <filesystem>
 #include "ShannonNode.h"
-#include <vector>
 #include <algorithm>
-#include "Dictionary.h"
-#include <thread>
 #include "filesize.h"
 #include <utility>
-
-#include <memory>
+#include <vector>
 
 namespace custom {
-
-    void freememory(binarytree<char,char>* object) {
-        delete object;
-    }
-
     class message {
     private:
-        char* bytes;
-
-        std::string* data;
-        uintmax_t size;
+        std::vector<custom::ShannonNode> ShannonNodes;
+        uintmax_t LetterAmount;
+        uintmax_t MessageSize;
     public:
         message() {
-            data = nullptr;
-            bytes = new char[255];
-            char* p{bytes};
-            for(size_t i = 0; i < 255; i++) {
-                *(p++) = i;
-            }
-            p = bytes;
-            for (size_t i = 0; i < 255; i++) {
-                if (*p != 0) std::cout << "wrong";
-                p++;
-            }
-            size = 0;
+            ShannonNodes.reserve(255);
+            MessageSize = 0;
+            LetterAmount = 0;
         }
 
         message(const custom::message & copy) {
-            if (copy.data) {
-                this->data = new std::string(*copy.data);
-                this->size = copy.size;
-            } else {
-                this->data = nullptr;
-                this->size = 0;
-            }
+
         }
 
         ~message() {
-            if (data) {
-                delete data;
-            }
+
         }
 
         void readfile() {
@@ -78,16 +51,27 @@ namespace custom {
                     return;
                 }
                 std::filesystem::path {path};
-                this->size =  std::filesystem::file_size(path);
-                data = new std::string();
-
+                this->MessageSize =  std::filesystem::file_size(path);
+                unsigned int* Frequencies = new unsigned int[255];
+                unsigned int* p{Frequencies};
+                for(size_t i = 0; i < 255; i++) {
+                    p[i] = 0;
+                }
                 while (!file.eof()) {
                     char nextletter {0};
                     file >> nextletter;
-
-
+                    ++Frequencies[(unsigned)nextletter];
                 }
                 file.close();
+                for (int i = 0; i < 255; ++i) {
+                    if (Frequencies[i]) {
+                        custom::ShannonNode NewNode((char)i,Frequencies[i]);
+                        NewNode.code.reserve(255);
+                        ShannonNodes.push_back(NewNode);
+                    }
+                }
+                delete Frequencies;
+                LetterAmount = ShannonNodes.size();
             } catch(...) {
                 std::cerr << "Ooops:(\nSomething went wrong!";
                 std::terminate();
@@ -95,125 +79,80 @@ namespace custom {
         }
 
         void writetoconsole() {
-            std::cout << "Your message is (";
-            show_filesize(this->size);
-            std::cout << "):\nmessage start:[";
-            for(auto letter : *data) {
-                std::cout << letter;
-            }
-            std::cout << "]: message end\n";
-        }
-
-        void readconsole() {
-            try {
-                std::cout << "Enter a message(UTF-8): ";
-                data = new std::string();
-                std::cin >> *data;
-            } catch(...) {
-                std::cerr << "Error has been happened while you had entered message.";
-                std::terminate();
+            std::cout << "message MessageSize is: ";
+            show_filesize(this->MessageSize);
+            std::cout << "\ncodes:\n";
+            for(auto elem : ShannonNodes) {
+                std::cout << elem.letter << "(code:" << (int)elem.letter << "): " << elem.frequency << std::endl;
             }
         }
 
         void compress() {
-            binarytree<char,char>* dictionary = new binarytree<char,char>;
-            for (int i = 0; i < data->size(); ++i) {
-                dictionary->insert(data->operator[](i),data->operator[](i));
-            }
-            std::vector<custom::ShannonNode>* nodes = dictionary->to_shannonarray();
-            std::sort(nodes->begin(),nodes->end(), [](const custom::ShannonNode& a, const custom::ShannonNode& b){return a.frequency > b.frequency;});
-            std::thread memcleaner(freememory,dictionary);
-            memcleaner.detach();
-            for (int i = 0; i < nodes->size(); ++i) {
-                std::cout << nodes->operator[](i).letter << ": " <<  nodes->operator[](i).frequency << std::endl;
+            SortShannonNodes(0,ShannonNodes.size() - 1);
+            ShannonCodeGenerating(0, ShannonNodes.size() - 1, 0);
+            std::cout << "\n\nCodes:\n";
+            for (auto elem : ShannonNodes) {
+                std::cout << elem.letter << ": " << elem.code << std::endl;
             }
         }
 
-        std::vector<custom::ShannonNode> merge(std::vector<custom::ShannonNode> a, std::vector<custom::ShannonNode> b) {
-            std::vector<custom::ShannonNode> result;
-            result.reserve(a.size() + b.size());
-            int i = 0, j = 0;
-            while (a.size() > i && b.size() > j)
-                if (a.operator[](i).frequency <= b.operator[](j).frequency) {
-                    result.push_back(a[i++]);
-                } else  {
-                    result.push_back(b[j++]);
+        int CurrentCodeLevel = 0;
+        void ShannonCodeGenerating(int start, int end, int GroupLevel) {
+            int i{start}, j{end};
+            unsigned int LeftGroupSum{ShannonNodes[i].frequency}, RightGroupSum{ShannonNodes[j].frequency};
+            if(GroupLevel > CurrentCodeLevel) {
+                CurrentCodeLevel = GroupLevel;
+            }
+            while(i < (j-1)) {
+                while(LeftGroupSum > RightGroupSum && i < (j - 1)) {
+                    --j;
+                    RightGroupSum += ShannonNodes[j].frequency;
                 }
-            while (a.size() > i)
-                result.push_back(a[i++]);
-            while (b.size() > j)
-                result.push_back(b[j++]);
-            return result;
-        }
-
-        void ShannonCodeGenerating(int start,int end,int arr[20], char code[20][20],int level) {
-            int i=start;
-            int j=end;
-            int isum = arr[i],jsum = arr[j];
-
-//            if(level>g_level) {
-//                g_level = level;
-//            }
-            while(i<(j-1)) {
-                while(isum>jsum && i<(j-1)) {
-                    j--;
-                    jsum += arr[j];
-                }
-                while(isum<jsum && i<(j-1)) {
-                    i++;
-                    isum += arr[i];
+                while(LeftGroupSum < RightGroupSum && i < (j-1)) {
+                    ++i;
+                    LeftGroupSum += ShannonNodes[i].frequency;
                 }
             }
-
-            if(i==start) {
-                code[start][level]='0';
-            } else if((i-start)>=1) {
-                for(int k=start;k<=i;++k)
-                    code[k][level] = '0';
-
-                ShannonCodeGenerating(start,i,arr,code,level+1);
+            if(i == start) {
+                ShannonNodes[start].code.push_back('0');
             }
-            if(j==end) {
-                code[end][level]='1';
-            } else if((end-j)>=1) {
-                for(int k=j;k<=end;++k) {
-                    code[k][level] = '1';
+            else if((i - start) >= 1) {
+                for(int k = start; k <= i; ++k) {
+                    ShannonNodes[k].code.push_back('0');
                 }
-                ShannonCodeGenerating(j,end,arr,code,level+1);
+                ShannonCodeGenerating(start, i, GroupLevel + 1);
+            }
+            if(j == end) {
+                ShannonNodes[end].code.push_back('1');
+            }
+            else if((end - j) >= 1) {
+                for(int k = j;k <= end; ++k) {
+                    ShannonNodes[k].code.push_back('1');
+                }
+                ShannonCodeGenerating(j, end, GroupLevel + 1);
             }
         }
 
-        void quicksort(std::vector<custom::ShannonNode>* nodes, int low, int high) {
+
+        void SortShannonNodes(int low, int high) {
             int i = low;
             int j = high;
-            custom::ShannonNode* middle = &nodes->operator[]((low + high) >> 1);
+            custom::ShannonNode* middle = &ShannonNodes.operator[]((low + high) >> 1);
             do
             {
-                while (nodes->operator[](i).frequency < middle->frequency) ++i;
-                while (nodes->operator[](j).frequency > middle->frequency) --j;
+                while (ShannonNodes.operator[](i).frequency < middle->frequency) ++i;
+                while (ShannonNodes.operator[](j).frequency > middle->frequency) --j;
                 if (i <= j)
                 {
-                    auto temp = nodes->operator[](i);
-                    nodes->operator[](i) = nodes->operator[](j);
-                    nodes->operator[](j) = temp;
+                    auto temp = ShannonNodes.operator[](i);
+                    ShannonNodes.operator[](i) = ShannonNodes.operator[](j);
+                    ShannonNodes.operator[](j) = temp;
                     i++; j--;
                 }
             } while (i < j);
-            if (low < j) quicksort(nodes, low, j);
-            if (i < high) quicksort(nodes, i, high);
-
+            if (low < j) SortShannonNodes(low, j);
+            if (i < high) SortShannonNodes(i, high);
         }
-
-        bool DoesShannonNodesContain(char letter, std::vector<custom::ShannonNode>* nodes) {
-            for (int i = 0; i < nodes->size(); ++i) {
-                if (letter == nodes->operator[](i).letter) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-
     };
 
 } // custom
